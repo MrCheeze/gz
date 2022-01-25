@@ -32,7 +32,7 @@ static struct menu_item  *view_cells[MEM_VIEW_SIZE];
 struct mem_domain
 {
   uint32_t    start;
-  uint32_t    size;
+//  uint32_t    size;
   const char *name;
   int         view_offset;
 };
@@ -43,7 +43,7 @@ static void add_domain(uint32_t start, uint32_t size, const char *name)
 {
   struct mem_domain *domain = vector_push_back(&domains, 1, NULL);
   domain->start = start;
-  domain->size = size;
+//  domain->size = size;
   domain->name = name;
   domain->view_offset = 0;
 }
@@ -51,16 +51,12 @@ static void add_domain(uint32_t start, uint32_t size, const char *name)
 static void update_view(void)
 {
   struct mem_domain *d = vector_at(&domains, view_domain_index);
-  if (d->size <= MEM_VIEW_SIZE || d->view_offset < 0)
-    d->view_offset = 0;
-  else if (d->view_offset + MEM_VIEW_SIZE > d->size)
-    d->view_offset = d->size - MEM_VIEW_SIZE;
   menu_intinput_set(view_address, d->start + d->view_offset);
   strcpy(view_domain_name->text, d->name);
-  view_pageup->enabled = view_pagedown->enabled = (d->size > MEM_VIEW_SIZE);
+  view_pageup->enabled = view_pagedown->enabled = 1;
   for (int y = 0; y < MEM_VIEW_ROWS; ++y) {
     struct menu_item *row = view_rows[y];
-    row->enabled = (d->view_offset + y * MEM_VIEW_COLS < d->size);
+    row->enabled = 1;
     if (row->enabled)
       sprintf(view_rows[y]->text, "%08" PRIx32,
               d->start + d->view_offset + y * MEM_VIEW_COLS);
@@ -69,7 +65,7 @@ static void update_view(void)
       if (n % view_data_size != 0)
         continue;
       struct menu_item *cell = view_cells[n];
-      cell->enabled = (d->view_offset + n < d->size);
+      cell->enabled = 1;
       if (cell->enabled)
         cell->think_proc(cell);
     }
@@ -251,6 +247,7 @@ void mem_menu_create(struct menu *menu)
   /* initialize data */
   vector_init(&domains, sizeof(struct mem_domain));
   add_domain(0x80000000, 0x00C00000, "k0 rdram");
+/*
 #ifndef WIIVC
   add_domain(0xA0000000, 0x00C00000, "k1 rdram");
   add_domain(0xA3F00000, 0x00100000, "rdram regs");
@@ -269,6 +266,7 @@ void mem_menu_create(struct menu *menu)
 #endif
   add_domain(0xBFC00000, 0x000007C0, "pif rom");
   add_domain(0xBFC007C0, 0x00000040, "pif ram");
+*/
   /* initialize menus */
   menu_init(menu, MENU_NOVALUE, MENU_NOVALUE, MENU_NOVALUE);
   menu->selector = menu_add_submenu(menu, 0, 0, NULL, "return");
@@ -305,7 +303,7 @@ void mem_goto(uint32_t address)
   address &= ~(view_data_size - 1);
   for (int i = 0; i < domains.size; ++i) {
     struct mem_domain *d = vector_at(&domains, i);
-    if (address >= d->start && address < d->start + d->size) {
+    if (1) {
       view_domain_index = i;
       d->view_offset = address - d->start;
       break;
